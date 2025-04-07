@@ -1,0 +1,726 @@
+Good Morning All
+
+Welcome to Ansible Training - DAY1
+	   --------
+This is Palani Karthikeyan (Call: Karthik) - Trainer
+	---------------------------------
+we will start session @ 9:30 AM IST
+----------------------------------------------------------------
+
+Ansible
+Ansible architecture
+ad-hoc command
+------
+YAML 
+|
+playbook -like a script
+|
+|->target section 
+|->variable section
+|->task section
+|->handler section
+|->template section
+
+|->block 
+|->vault,tags,errorhandling flags
+|->roles - directory structure
+   -----  
+|->Galaxy 
+#######################################################################
+OL7
+https://drive.google.com/file/d/1TwVMxxSTIsCt9WVPORaJEw5TqGFKoVBs/view?usp=sharing
+
+Ubuntu
+https://drive.google.com/file/d/1KoG378PaUcQWnGOzOOxccRNDnXxRJU8R/view?usp=sharing
+
+
+
+Login: root 
+
+password: apelix
+
+step 1: install Oracle Virtual box
+|
+step 2: download my Linux OL7 file from given drive link
+|
+step 3: extract OL7 downloaded file
+|
+step 4: open a OL7 directory ->OL7 application - Enter 
+
+#####################################################################################
+
+Configuration Management (CM)
+-------------------------------
+ |->task(action) - validation based 
+    ------------
+ ex: create a newfile -p1.txt (task) on remote m/c(host01)
+     create a newfile -p2.txt (task) on remote m/c(host01)		
+     
+      host01:
+       p1.txt - already exists
+       p2.txt - not exists - create a newfile -p2.txt
+
+ state: action is changed the system(node) 
+ |
+ state: true ; false 
+
+
+ansible
+---------
+ |->by python
+       ------
+        |->code - class,object,method.... // ansible
+        ................................. //
+
+  +------------------+
+  | Control node     | ------SSH-------- [ node1 ] - Linux
+  |  <or>            | ------winRM-------- [ node2 ] - Winx
+  | Master node      |  ..
+  +-(ansible) -------+ ------SSH---------[ nodeN ] - macos
+   |->Linux 
+						
+ fork() - system call - create a new process
+
+
+ User:
+ ---------------------
+ systemcall() = FD (filedescriptor)
+ |
+ FileSystem -- PCB
+ |
+ DD
+ |
+ DC
+ |
+-------------
+ H/W
+
+
+echo Hello  print Hello  printf("Hello")  cout<<"Hello"  .. Application
+----------------------------------------------------------
+		write(1,"Hello") = FD
+
+--------------------------------------------------------------------------------
+Admin:
+ - dev system for CGI (Common Gateway Interface) Application
+   ----------
+task1: install web server
+task2: install database
+task3: configure webserver - server file; client ...
+task4: configure database
+task5: start webserver daemon
+task6: start database server
+task7: create a test file 
+task8: test index.html page ->OK
+
+1000's of dev system
+
+shellscript (or) anyscript 
+---------------------------
+rpm -qa |grep httpd >/dev/null 2>&1
+
+if [ $? -eq 0 ];then
+	echo "webserver package already exists"
+	exit
+else
+	yum -y install httpd >>/var/log/repo.log 2>&1
+	if [ $? -ne 0 ];then
+	   echo "Usage: Installation is failed refer repo.log"
+	   exit
+        else
+	   echo "Installation is done"
+	fi
+fi
+----------------------Vs----------------------
+		
+ansible <remoteNode> -m yum -a "name=httpd state=installed" <==adhoc command
+
+########################################################################################
+to write ansible playbook
+---------------------------
+Linux admin   <---- step 1 
+ansible - workflow <-- step 2
+adhoc <-- step 3
+YAML  <--- step 4 
+playbook <-- step 5
+----------------------------------------------------------------------
+New to Linux (or) Linux admin
+--------------------------------
+ Linux - Kernel - Core part of os
+	 ------
+
+ User:
+ --------------------- ---------------------------
+ systemcall() = FD (filedescriptor)  ^   
+ |
+ FileSystem -- PCB                   |
+ |
+ DD				 KERNEL
+ |
+ DC				     |
+ |				     |
+---------------------------------------
+ H/W (CPU RAM HD IO)
+
+Utilites(tools) - distributors (redhat,debian,...)
+
+Kernel + Utilites = OS 
+
+
+Unix  Vs  Linux
+----      ------
+OS        Kernel(Linus torvald) --->GNUProject - GNULinux
+
+Kernel(Linux) + Utilites = OS
+ex: RedHatLinux DebianLinux OracleLinux ...
+
+
+RedHatLinux =>  ls ps date  yum install httpd
+ Vs
+UbuntuLinux =>  ls ps date  apt-get install apache2
+
+Kernel - File,Process
+
+File - Data - Under the storage unit(HD)
+Process - Data - Under the CPU (fetch the data from memory;stores to register;execute)
+			   ---
+ansible-playbook p1.yml <== file,process <-- from kernel point of view
+./p1.sh
+./obj  
+command 
+,,
+----------------------------//file,process
+
+Linux Users
+------------
+root user =>  /root 
+non-root user => /home/
+
+
+Login as: root
+password:
+
+root@hostname~]# pwd
+/root			
+
+Login as: arun				Login as: student
+password:				password:
+			
+arun@hostname~]$ pwd			student@hostname~]$ pwd
+/home/arun				/home/student
+---------------------------------------------------------------------------
+To get command info
+
+whatis <command>
+ <or>
+man <command>
+
+Linux commandline structure
+---------------------------
+1. command only style (ex: whoami ps ls date uname ..)
+
+2. command <argument> - command with argument style (ex: uname -r; echo Hello Linux
+							 echo "Hello Linux" )
+
+ls 
+ls -l
+ls -r
+ls -lr <or> ls -rl 
+
+we can combine multiple options 
+
+uname -rs (or) uname -sr
+
+ 
+3. command `<anotherCommand>` <== backquote (or)  command $(command)
+ 
+ echo "Working kernel name is:`uname`"
+   <or>
+ echo "Working kernel name is:$(uname)"
+
+#####################################################################
+
+arun@host~]$ yum install gcc
+<permission denied>
+
+arun@host~]$ su - # switch to root user login
+password: <Type root user password>
+
+root@host~]# pwd
+/root
+root@host~]# yum install gcc
+...OK
+root@host~]# exit
+arun@host~]$ 
+
+root@host~]# visudo 
+
+
+arun ALL ALL
+..
+:wq 
+
+arun@host~]$ sudo yum install ansible Vs not switching to root 
+----
+Enter sudo user password: arun user login password
+
+...
+arun@host~]$ 
+
+
+
+#####
+oci - opc user is sudo user
+|
+instance => opc@hostname~]$ sudo su -  Vs  opc@hostname~]$ su - 
+	    		    ..		   Enter a root password: ..
+	    root@hostname~]# passwd {Enter}
+	    Enter a password: <root user password>
+	    Re-enter root user password: <root user password>
+	    |
+	    exit
+	    opc@hostname~]$ su - 
+	    Enter a password:
+
+#####
+
+non-rootuser@hostname~]$ sudo <admin-Command>
+------------
+
+#####################################################################################
+
+[root@krosumlabs ~]# useradd arun
+[root@krosumlabs ~]# passwd arun
+Changing password for user arun.
+New password:
+BAD PASSWORD: The password is shorter than 8 characters
+Retype new password:
+passwd: all authentication tokens updated successfully.
+[root@krosumlabs ~]# ls /
+bin   dev  home  lib64  mnt  proc  run   srv  tmp  var
+boot  etc  lib   media  opt  root  sbin  sys  usr
+[root@krosumlabs ~]#
+[root@krosumlabs ~]# mkdir /D1
+[root@krosumlabs ~]# ls /
+bin   D1   etc   lib    media  opt   root  sbin  sys  usr
+boot  dev  home  lib64  mnt    proc  run   srv   tmp  var
+[root@krosumlabs ~]# ls /
+bin   D1   etc   lib    media  opt   root  sbin  sys  usr
+boot  dev  home  lib64  mnt    proc  run   srv   tmp  var
+[root@krosumlabs ~]#
+
+[arun@krosumlabs ~]$
+[arun@krosumlabs ~]$
+[arun@krosumlabs ~]$ mkdir /D1
+mkdir: cannot create directory ‘/D1’: Permission denied
+[arun@krosumlabs ~]$
+[arun@krosumlabs ~]$ sudo mkdir /D2
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for arun:
+arun is not in the sudoers file.  This incident will be reported.
+
+[root@krosumlabs ~]#
+[root@krosumlabs ~]#
+You have new mail in /var/spool/mail/root
+[root@krosumlabs ~]# cat /var/spool/mail/root
+From root@krosumlabs.localdomain  Thu Sep 26 15:20:10 2024
+Return-Path: <root@krosumlabs.localdomain>
+X-Original-To: root
+Delivered-To: root@krosumlabs.localdomain
+Received: by krosumlabs.localdomain (Postfix, from userid 0)
+        id AA1AB30FA872; Thu, 26 Sep 2024 15:20:10 +0530 (IST)
+To: root@krosumlabs.localdomain
+From: userA@krosumlabs.localdomain
+Auto-Submitted: auto-generated
+Subject: *** SECURITY information for krosumlabs ***
+Message-Id: <20240926095010.AA1AB30FA872@krosumlabs.localdomain>
+Date: Thu, 26 Sep 2024 15:20:10 +0530 (IST)
+
+krosumlabs : Sep 26 15:20:10 : userA : user NOT in sudoers ; TTY=pts/1 ; PWD=/home/userA ; USER=root ; COMMAND=/sbin/useradd arun
+
+
+From root@krosumlabs.localdomain  Thu Sep 26 15:23:29 2024
+Return-Path: <root@krosumlabs.localdomain>
+X-Original-To: root
+Delivered-To: root@krosumlabs.localdomain
+Received: by krosumlabs.localdomain (Postfix, from userid 0)
+        id 2728E30FA872; Thu, 26 Sep 2024 15:23:29 +0530 (IST)
+To: root@krosumlabs.localdomain
+From: userA@krosumlabs.localdomain
+Auto-Submitted: auto-generated
+Subject: *** SECURITY information for krosumlabs ***
+Message-Id: <20240926095329.2728E30FA872@krosumlabs.localdomain>
+Date: Thu, 26 Sep 2024 15:23:29 +0530 (IST)
+
+krosumlabs : Sep 26 15:23:29 : userA : user NOT in sudoers ; TTY=pts/1 ; PWD=/home/userA ; USER=root ; COMMAND=/sbin/useradd arun
+
+
+
+[arun@krosumlabs ~]$ su -
+Password:
+Last login: Mon Apr  7 10:41:57 IST 2025 from 192.168.1.2 on pts/0
+[root@krosumlabs ~]# exit
+logout
+[arun@krosumlabs ~]$ sudo mkdir /D2
+[sudo] password for arun:
+[arun@krosumlabs ~]$
+[arun@krosumlabs ~]$
+[arun@krosumlabs ~]$ sudo rmdir /D1
+[arun@krosumlabs ~]$ sudo rmdir /D2
+[arun@krosumlabs ~]$
+
+#######################################################################################
+
+ansible --version
+
+/etc/ansible/ansible.cfg
+		|
+		|->map to inventory file (/etc/ansible/hosts)
+			  ----------------
+			   remoteNode details(IPadd;..)
+
+			|------------------------SSH-----------[remoteNode]
+			|----------------pushed----------------[remoteNode]
+				push ansible module                ...
+			
+#######################################################################################
+Control node (or) master node (or) server node - ansible m/c
+
+
+ +----------------+
+ |                | ---------------[ node1 ]
+ | (ansible)      |
+ |                |
+ | [inventory]    |
+ |                |
+ +----------------+
+  ex: OL7
+  |
+ ansible --version
+
+ip a - get ip address
+
+to update remote ip 
+--------------------
+ |-> /etc/hosts
+
+   vi /etc/hosts
+  IPAddress  <hostname>
+  remoteIPAddress <remoteHostname>
+  :wq
+
+ping remoteIPAddress (or) ping remoteHostname
+...
+...
+press Ctrl+C
+
+ssh remoteIPAddress (or) ssh remoteHostname
+
+....
+###################################################################################
+To install
+-----------
+yum install –y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum install –y ansible 
+ansible     - - version 
+
+OL8
+dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+dnf install -y ansible 
+ <or>
+OL8 => pip3 install ansible <== ubuntu 
+       ----
+#################################################################################
+
+dnf install ansible (or) apt install ansible (or) yum install ansible
+ansible --version
+Config file=/etc/ansible/ansible.cfg 
+Vs
+
+pip3 install ansible
+
+ansible --verison
+... # there is no Config file details
+###################################################################################
+
+ansible playbook (or) ansible adhoc command
+1st ->ansible ->refers ansible.cfg file from current directory
+if ansible.cfg file is not exists from current directory -> /etc/ansible/ansible.cfg
+
+
+root@host~]# mkdir project1 project2 project3
+		 
+project1/
+	|__ansible.cfg
+
+project2/
+	|__ansible.cfg
+
+project3/
+	|__ansible.cfg
+root@host~]# ls
+project1 project2 project3
+
+root@host~]# ansible --version
+Config file=/etc/ansible/ansible.cfg
+
+root@host~]# ansible <remoteNode> -m <module> -a "arguments" {Enter} 
+			|
+			/etc/ansible/ansible.cfg
+					|->map to inventoryFile
+
+root@host~]# cd project2
+root@host project2]# ansible <remoteNode> -m <module> -a "arguments" {Enter}
+				|
+				/root/project2/ansible.cfg	
+						|->map to inventory
+
+root@host project2]# cd ..
+
+root@host~]# ansible <remoteNode> -m <module> -a "arguments" {Enter} 
+			|
+			/etc/ansible/ansible.cfg
+					|->map to inventoryFile
+
+				Vs
+
+root@host~]# ansible <remoteNode> -m <module> -a "arguments" -i /root/project2
+							     -------------------
+			|
+			|____/root/project2/ansible.cfg 
+						|-->map to inventory 
+ 
+#######################################################################################
+
+[root@krosumlabs ~]# mkdir ansible_training
+[root@krosumlabs ~]# cd ansible_training
+[root@krosumlabs ansible_training]# ansible --version 
+
+[root@krosumlabs ansible_training]# touch ansible.cfg
+[root@krosumlabs ansible_training]# ansible --version 
+[root@krosumlabs ansible_training]# cd ..
+[root@krosumlabs ~]# ansible --version 
+#######################################################################################
+
+file:ansible.cfg
+------------------
+[defaults]
+inventory=<inventoryfile>
+------------------
+
+file:<inventoryFile>
+-----------------------
+[groupName]
+remoteNode  ansible_ssh_ip=<IPAddress> ansible_ssh_pass=<password> ...
+
+
+
+file: test1
+-------------
+[dev]
+node1 ansible_ssh_ip=10.0.2.1
+node2 ansible_ssh_ip=10.0.2.2
+node3 ansible_ssh_ip=10.0.2.3
+
+[qa]
+node4 ansible_ssh_ip=10.20.30.40
+node5 ansible_ssh_ip=10.20.33.23
+
+[db]
+node6 ansible_ssh_ip=10.22.33.12
+
+---------------
+ansible dev -m .....
+	---
+
+ansible [dev,qa] -m ....
+
+ansible all -m ...
+	---
+all - all the groups
+--------------------------------------------------------------------------------------
+ansible internal execution steps
+---------------------------------
+ansible --------------------------SSH------------(1)----------[node1]
+(control_system - python)	 -----//using paramiko python module 
+				|----->new subshell on remote node(subprocess) - (2)
+				|----->new python(child) will create on remote node -(3)
+					       ----------
+						|
+		|______________________push the ansible-module(pythonCode) - (4)
+				       child python execute this module(pythonCode) (5)
+					|
+					result - module execution results 
+	-------------<------------------
+		json format(6)		|
+					child python - exit (7)
+					subshell - exit (8)
+					|
+					exit ssh connection (9)
+
+
+
+[group]
+node1
+node2
+node3
+
+ansible [remoteNode <or> remoteGroup]  -m <module>
+	------------------------------
+	|->refers from inventory file
+
+To test remote node is reachable or not 
+---------------------------------------
+ansible <group/node> -m ping
+
+ansible modules are pythonCode(filename.py)
+ex: ping module -> ping.py
+    yum module  -> yum.py
+    ..
+
+ansible-doc <moduleName> - like man command in ansible
+------------
+
+ansible-doc --list # list of available ansible modules
+-------------------
+
+[root@krosumlabs ~]# ansible all -m ping -i /root/ansible_training/
+shan | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+node1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+[root@krosumlabs ~]# cd ansible_training/
+[root@krosumlabs ansible_training]# ansible all -m ping
+shan | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+node1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+[root@krosumlabs ansible_training]#
+
+----------------------------------------------------------------------
+
+ansible.cfg <== (1) - predefined config filename
+ |
+[defaults]
+inventory=<user-defined-inventory-file> <== (2)
+	  -----------------------------
+		[group]
+		node details <== (3)
+
+ansible - ssh connection (using python paramiko module )
+	  -----(4)
+	  |
+	 create subshell --(5)
+	  |
+	 create a newpython --(6)
+	  |
+	ansible module is pushed to remote system --(7)
+	  |
+	newpython execute this loaded module --(8)
+	  |
+	return results to control system --(9)
+	  	------//json format
+	  |
+	exit newpython --(10)
+	exit subshell --(11)
+
+ansible <remoteGroup/node> -m <module> -a "arguments" -v
+						      -vv
+						       ..    
+						      -vvvvv
+
+
+############################################################################
+task:
+-----
+ansible <remoteGroup/node> -m ping  
+ansible <remoteGroup/node> -m ping  -v
+ansible <remoteGroup/node> -m ping  -vv
+ansible <remoteGroup/node> -m ping  -vvv
+ansible <remoteGroup/node> -m ping  -vvvv
+ansible <remoteGroup/node> -m ping  -vvvvv
+
+ansible <remoteGroup/node> -m command -a "uptime"
+ansible <remoteGroup/node> -m command -a "sleep 120"  --->Goto remote node
+							 ps -ef|tail
+					  			... sshd
+
+							 ps -ef|tail
+
+							 check pts/<port>
+
+ansible <remoteGroup/node> -m command -a uptime -vvvvv
+--------------------------------------------------------------------------
+ssh key with passphrases 
+--------------------------
+vi .bashrc
+
+export SSHPASS="your_passphrase"
+
+:wq
+
+ansible <node> -m module -a "args" --extra-vars "ansible_ssh_private_key_file=/path/to/your/private_key"					
+--------------------------------------------------------------------------------
+ModuleNotFoundError: No module named 'ansible.module_utils.six.moves'
+ansibleubuntunode | FAILED! => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    }
+
+----------------------------------------------------------------------------
+ansible-doc file
+
+ansible/ <== 2.7
+	builtin/
+	        file.py
+		command.py
+		ping.py
+
+ansible/ <== 2.9
+	builtin/
+	        file.py
+		  |
+		  |->options 
+		command.py
+		ping.py
+----------------------------------------------------------------------------
+
+command;shell - always state - changed: true - newaction (or) execution is done
+---------------
+debug   -- always state - changed: false # display purpose only
+-----			  ---------------
+----------------------------------------------------------------------------
+-m ping
+-m command
+-m shell
+-m file
+-m copy
+-m debug
+-m ...
+
+Linux Shell script		Vs		ansible
+-------------------				---------
+Linux command - specific options		more ansible module specific options
+							     -------
+-----------------------------------------------------------------------------------------
