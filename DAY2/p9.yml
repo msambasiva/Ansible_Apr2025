@@ -1,0 +1,10 @@
+
+---
+- name: playbook
+  hosts: web
+  tasks:
+  - name: task1
+    command: uname -a
+    register: result
+  - name: task2
+    debug: msg="Kernel details:{{result.stdout}} status code is:{{result.rc}}"

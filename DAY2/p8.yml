@@ -1,0 +1,11 @@
+---
+- name: node1 demo
+  hosts: node1
+  tasks:
+  - name: task4
+    shell: ps -e|wc -l
+    register: result3
+  - name: task5
+    debug: var=result3.stdout
+  - name: task6
+    debug: msg="Total number of process:{{result3.stdout}}"

@@ -1,0 +1,11 @@
+---
+- hosts: node1
+  gather_facts: false
+  tasks:
+  - name: task1
+    shell: free -m
+    register: result
+  - name: task2
+    debug: var=result
+  - name: display mesg
+    debug: var=ansible_facts.all_ipv4_addresses

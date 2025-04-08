@@ -1,0 +1,13 @@
+
+---
+- name: playbook
+  hosts: web
+  tasks:
+  - name: task1
+    command: uptime
+    register: result
+  - name: task2
+    copy: src=file1 dest=/tmp/file2
+    register: output
+  - name: task3
+    debug: msg="uptime result:{{result.stdout}} copy module results:{{output}}"

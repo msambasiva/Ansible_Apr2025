@@ -1,0 +1,7 @@
+---
+- hosts: localhost,web
+  tasks:
+  - debug: var=ansible_memfree_mb
+  - debug: msg="Free space memory:{{ansible_memfree_mb}}"
+  - debug: var=ansible_memory_mb 
+

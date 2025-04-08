@@ -1,0 +1,9 @@
+---
+- name: sample-playbook
+  hosts: web
+  gather_facts: false
+  tasks:
+  - name: task1-display-cpu-uptime
+    command: uptime
+  - name: task2-display-mounted-filesystem
+    shell: df -Th

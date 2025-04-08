@@ -1,0 +1,14 @@
+---
+- name: display os details
+  hosts: node1
+  tasks:
+  - name: display os details use multiline string
+    debug: 
+      msg: >-
+       os_family:
+       {{ansible_facts.os_family}}
+       distribution:
+       {{ansible_facts.distribution}}
+       version:
+       {{ansible_facts.distribution_version}}
+       kernel name is:{{ansible_facts.kernel}}

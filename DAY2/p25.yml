@@ -1,0 +1,9 @@
+---
+- hosts: node1
+  gather_facts: false
+  tasks:
+  - name: Get service facts
+    service_facts:
+
+  - name: display mesg
+    debug: var=ansible_facts['services']['sshd.service']

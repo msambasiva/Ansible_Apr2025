@@ -1,0 +1,9 @@
+---
+- name: playbook1
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: uptime
+    register: result # captured the module execution result
+  - name: task2
+    debug: var=result.stdout # display module execution results to monitor

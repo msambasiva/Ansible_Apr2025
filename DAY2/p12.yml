@@ -1,0 +1,10 @@
+---
+- name: install a package 
+  hosts: localhost
+  tasks:
+  - name: task1- install a package
+    yum:
+     name: zsh 
+     state: absent
+    register: result
+  - debug: msg="pacakge zsh installation status {{result.rc}}"

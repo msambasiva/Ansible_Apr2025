@@ -1,0 +1,17 @@
+---
+- name: node1 demo
+  hosts: node1
+  tasks:
+  - name: task1
+    command: uptime
+    register: result1
+  - name: task2
+    command: date
+    register: result2
+  - name: task3
+    debug: var=result1.stdout # uptime command result
+  - name: task4
+    shell: ps -e|wc -l
+    register: result3
+  - name: task5
+    debug: var=result2.stdout # date command result

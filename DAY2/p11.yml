@@ -1,0 +1,10 @@
+---
+- hosts: web
+  tasks:
+  - command: uptime
+    register: result
+  - debug: msg="Thank you"
+  - debug: var=result.stdout 
+#------------------------
+# - name tag is optional
+#-----------------------

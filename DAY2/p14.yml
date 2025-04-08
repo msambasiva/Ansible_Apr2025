@@ -1,0 +1,16 @@
+---
+- name: playbook-activity-1
+  hosts: shan,localhost
+  tasks:
+  - name: execute group of commands and redirect results to log file
+    shell: (uptime;hostname;df -Th /;ps -e|wc -l) >/var/log/r1.log
+    
+  - name: using fetch module copy external /var/log/r1.log to ctrl mc
+    fetch: src="/var/log/r1.log" dest="/tmp"
+
+  - name: use command module - read r1.log file 
+    command: cat /var/log/r1.log
+    register: result
+
+  - name: display log content
+    debug: var=result.stdout_lines

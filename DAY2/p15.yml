@@ -1,0 +1,13 @@
+---
+- name: ansible-activity-2
+  hosts: shan # OL8
+  vars:
+    pkg: httpd
+  tasks:
+  - name: install a package
+    dnf: name="{{pkg}}" state=installed
+  - name: start a service
+    service: name="{{pkg}}" state=started
+    register: output
+  - debug: var=output
+

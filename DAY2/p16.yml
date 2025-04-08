@@ -1,0 +1,17 @@
+---
+- name: variable examples
+  hosts: localhost
+  vars:
+    pkg: httpd
+    compilers: [gcc,g++,irb] # array
+    netinfo: {type: ethernet,interface: [eth0,eth1],ipaddr: 127.0.0.1}
+  tasks:
+  - name: display-package name
+    debug: msg="Package name is:{{pkg}}"
+  - name: display compiler details
+    debug: msg="C compiler:{{compilers.0}} C++ compiler:{{compilers.1}}"
+  - name: network details
+    debug: msg="Type of network is:{{netinfo.type}}"
+  - debug: var=netinfo.interface.0 # eth0
+  - debug: var=netinfo.interface.1 # eth1
+  - debug: var=netinfo.ipaddr # 127.0.0.1

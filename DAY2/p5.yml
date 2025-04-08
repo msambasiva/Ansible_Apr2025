@@ -1,0 +1,10 @@
+
+---
+- name: debug module example
+  hosts: localhost
+  tasks:
+  - name: display to monitor
+    debug: msg="Hello world"
+  - name: summary details
+    debug:
+      msg: This is sample data from ansible

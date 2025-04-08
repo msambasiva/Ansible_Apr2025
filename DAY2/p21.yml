@@ -1,0 +1,12 @@
+---
+- hosts: web
+  gather_facts: false
+  tasks:
+  - name: display swap usage
+    debug: var=ansible_memory_mb.swap
+  - name: display used swap space
+    debug: var=ansible_memory_mb.swap.used
+  - name: display free space (swap)
+    debug: var=ansible_memory_mb.swap.free
+  - name: display total and cache 
+    debug: msg="total={{ansible_memory_mb.swap.total}} cache={{ansible_memory_mb.swap.cached}}"
