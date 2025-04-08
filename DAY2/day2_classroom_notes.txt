@@ -1,0 +1,693 @@
+Recap
+------
+ansible
+
+[ControlNode] ------------ SSH ---------- [remoteNode]
+	|_______push the module __________ 
+						..
+1st - SSH Connection
+2nd - create a subshell(/bin/sh) ->newpython(childPython)
+3rd - Control system python(ansible) -- push the ansible module to remote m/c
+4th - On the remote m/c ChildPython execute the ansible module # task execution
+5th - results - returns to control system //jsonformat
+6th - On the remote childPython ->exit ->subshell ->exit
+-----------------
+
+ansible node1 -m command -a "sleep 10" -v
+ansible node1 -m command -a "sleep 10" -vv
+ansible node1 -m command -a "sleep 10" -vvv
+ansible node1 -m command -a "sleep 10" -vvvv
+ansible node1 -m command -a "sleep 10" -vvvvv
+
+ansible module ->pythonCode
+
+ansible-doc <module>
+---------------------------------------------------------
+Commandline execution
+-----------------------
+ansible node1 -m copy -a "src=file1 dest=/tmp/r1.log" 
+ansible node1 -m command -a "uptime"  
+ansible node1 -m command -a "uptime"
+
+
+ansible <remoteNode> -m <module> -a "Key1=Value Key2=Value .. Kn=Vn"
+----------------------------------------------------------------------------
+YAML
+----
+|->file content => key:<space>Value//pair
+
+|->filename extension: filename.yaml ; filename.yml
+
+|->Key: value
+	-----
+	|->scalar - Single - numbers,str,bool,null
+					 |
+					yes;no;True;False;true;false;on;off
+	
+|->file
+    |->file_name 
+    |->file_index
+    |->file_disk_utilization
+    |->file_mount_status
+	...
+
+fname: index.html
+findex: 456
+futil: 98.42
+fmount: True
+------  -----//value
+-------------------------- 1Key: 1Value
+
+|->Key: value
+	-----
+	|->scalar - Single - numbers,str,bool,null	1Key: 1value (1-to-1)
+					 |
+					yes;no;True;False;true;false;on;off
+	
+	|->Collection - Collection of scalar (or) more than one value
+		|
+		array(or)list - index based []
+		object(or)dict - key based  {}
+
+
+file_details: [index.html,456,98.42,True]
+------------  ===========================//array 1Key: Multiplevalue (1-to-many)
+
+
+file_details: [index.html,456,98.42,True]
+		0	 | 1 | 2   | 3  <== index
+
+	<or>
+file_details:
+-<space>index.html
+-<space>456
+-<space>98.56
+-<space>True
+---------------------------//array 1Key: Multiplevalues (1-to-many)
+
+file_details:
+- index.html
+- 456
+- 98.56
+- True	
+
+file_details: {K1: index.html,K1: 456,K3: 98.56,K4: True}
+------------  ===========================================//dict (or) object
+	1Key:   Multiplevalue
+
+	<or>
+file_details:
+<><>K1:<>index.html
+<><>K2:<>456
+<><>K3:<>98.56
+<><>K4:<>True
+---------------------------// dict (or) object - 1key: multiple value
+<> - 1space 
+
+
+ansible node1 -m yum -a "name=zsh state=installed" <== Ad-hoc 
+
+yum:
+  name: zsh
+  state: installed
+------------------------// dict type 
+
+yum: {name: zsh,state: installed}
+---- =============================
+
+
+module:
+  param1: value
+  param2: value
+  param3: value
+  ..
+  paramN: value
+########################################################################################
+
+pkgs: [yum,dnf,apt]
+      ---------------//array - 1D array
+ <or>
+pkgs:
+- yum
+- dnf
+- apt
+----------------//array - 1D array
+
+pkgs: [[yum,dnf,apt]]
+      -----------------//array - Multidimensional 
+
+
+server: [[RHL5,RHL6,RHL7],[OL5,OL6,OL7,OL8],[DEB14,DEB18]]    [0][1] [1][2] [2][1]
+	| 0	 1   2      0   1    2  3	0   1	 |     0.1    1.2     2.1
+	|_____0th_________________1st______________2nd___|
+			Array
+
+  <or>
+server:
+- [RHL5,RHL6,RHL7] 
+- [OL5,OL6,OL7,OL8]
+- [DEB14,DEB18]
+
+  <or>
+
+server:
+- 
+  - RHL5
+  - RHL6
+  - RHL7
+- 
+  - OL5
+  - OL6
+  - OL7
+  - OL8
+- 
+  - DEB14
+  - DEB18
+
+--------------------------------
+array  <or> list
+object <or> dict
+
+array of array
+array of object
+object of array
+object of object
+---------------------//
+
+
+pk1: [[yum,apt,dnf]] # array of array
+     
+pk2: [{K1: yum,K2: apt,K3: dnf}] # array of object
+
+<or>
+pk2:
+- K1: yum
+- K2: apt
+- K3: dnf
+
+
+tasks: [{},{},{},{}] <== array of object
+	-- -- -- --
+	0  1   2 3 <== index
+
+
+tasks: [					tasks:[ {module: yum,service: httpd,
+	{module: yum,service: httpd},   Vs		 module: apt,service: apache2} ]
+	{module: apt,service: apache2},		     -------     -------- //duplicate key
+	{module: dnf,service:fastapi}
+       ]
+
+tasks:
+- module: yum
+  service: httpd
+- module: apt
+  service: apache2
+- module: dnf
+  service: fastapi
+
+tasks:					tasks:
+- command: date				- command: date
+- command: ps			Vs	  command: ps
+- command: uptime                         command: uptime
+-----------------------//array of object	-----------//duplicate key
+					  |
+					tasks: [{command: date command:ps}] //Notused
+
+
+ansible node -m command -a "uptime"
+ansible node -m shell -a "lsmod >/var/log/kernel_modules.log"
+ansible node -m copy -a "src=sysinfo.log dest=/tmp/r1.log"
+ansible node -m command -a "date"
+|
+|
+tasks:
+- command: uptime
+- shell: lsmod >/var/log/kernel_modules.log
+- copy: src=sysinfo.log dest=/tmp/r1.log
+- copy:
+    src: sysinfo.log
+    dest: /tmp/r1.log
+- command: date
+
+
+tasks:
+- command: uptime
+  shell: lsmod >/var/log/kernel_modules.log
+
+# datastructure is ok - unique key
+#
+# but ansible NOT ALLOWED more than one module in single index
+#		 
+
+
+ansible OL8 -m dnf -a "name=zsh state=present" # adhoc 
+ansible OL8 -m copy -a "src=file1 dest=file2 mode=0664" # adhoc
+
+tasks:
+- dnf: name=zsh state=present
+- copy: src=file1 dest=file2 mode=0664
+
+ <or>
+tasks:
+- dnf  
+    name: zsh
+    state: present
+- copy
+    src: file1
+    dest: file2
+    mode: 0664
+
+array of object  [{},{},{},{}]
+
+array of array   [[],[],[],[]]
+
+object of array   {K1: [],K2: [],K3: []}
+
+object of object  {K1: {},K2: {},K3: {}}
+
+------------------------------------------------
+
+pkgs: [{K1: yum,K2: apt},[rpm,deb]]
+       ----------------- ---------
+	 array of object  array of array
+
+pkgs[0] ->{K1: yum,K2: apt}
+
+pkgs[0][K1] ->yum  <- pkgs.0.K1
+pkgs[0][K2] ->apt  <- pkgs.0.K2
+
+pkgs[1] ->[rpm,deb]
+
+pkgs[1][0] ->rpm <- pkgs.1.0
+pkgs[1][1] ->deb <- pkgs.1.1
+
+
+pkgs: {K1: [yum,apt],K2:{K1: rpm,K2: deb}}
+       -------------	-----------------
+	object of array	  object of object
+
+pkgs[K1] ->[yum,apt]
+
+pkgs[K1][0] ->yum <- pkgs.K1.0
+pkgs[K1][1] ->apt <- pkgs.K1.1
+
+pkgs[K2][K1] ->rpm <- pkgs.K2.K1
+pkgs[K2][K2] ->deb <- pkgs.K2.K2
+##########################################################################
+YAML
+----
+1. configuration 
+	|-->INI format => 1D data => 1Key = 1value
+	|-->yaml format => nD data => 1Key: [ ], 1key: {}
+
+2. ansible - playbook
+
+INI			Vs YAML
+---			   ------
+interface=eth0		   interface: [eth0,eth1,eth2]
+
+##########################################################################
+
+file: filename.yaml <or> filename.yml
+-----
+ansible playbook - like a script
+----------------
+1. target section - remote node details
+2. variable section - define user variables - initialization
+3. task section - module based action - run on the remote system
+4. handler section - secondary task - module - based on notification
+5. template section - jija2 template
+
+##################################################################################
+
+---
+- name: <user defined message> <--|
+  hosts: <remote host details> <--| target section
+  vars:  --------------------------
+    User_defined_variable: value  | variable section
+  tasks: <=========================
+  - name: <user defined message>  |
+    module: Key1=value		  |
+  - name: <user defined message>  |  task section
+    module:			  |
+      Key1: value		  |
+  - name: <user defined message>  |
+    module: params                |
+    notify: <notify-the-handler>  |
+    <==============================
+  handlers:	<-----------------
+  - name: <notify-the-handler>	 |  handler section
+    module: params <--------------
+ 
+---
+- name: update the webserver	<---------| target section
+  hosts: web   <--------------------------|
+  tasks:					
+  - name: install latest version apache2	<====		
+    yum:					     | task section
+     name: httpd				     |
+     state: latest				<====
+  - name: Template a file to /etc/file.conf     <-----
+    template:					      |
+     src: /mytemplates/foo.j2			      | template section
+     dest: /etc/file.conf			      |
+     owner: bin					      |
+     group: wheel				      |
+     mode: '0644'				<-----
+
+
+file1.txt
+-----------
+server name is:{{ansible.os.family}}
+-----------
+copy src=file1.txt dest=/tmp/r1.log 
+		
+on the remote m/c 
+cat /tmp/r1.log ->server name is:{{ansible.os.family}}
+
+template src=file1.txt dest=/tmp/r2.log
+on the remote m/c 
+cat /tmp/r2.log ->server name is:RedHat
+---------------------------------------------------------------------------------
+
+ansible web -m command -a "uptime"
+ansible web -m yum -a "name=zsh state=installed"
+
+
+file:p1.yml
+-------------
+--- <== starts with ---
+- name: sample playbook
+  hosts: web # refer to inventoryFile
+  tasks:
+  - name: task1-display-uptime
+    command: uptime
+  - name: task2-install-zsh
+    yum: name=zsh state=installed
+----------------------------------------
+
+module: params
+register: userdefined_variable
+--------  ^^^^^^^^^^^^^^^^^^^^^
+		
+
+
+[ansible-playbook]---------display to monitor ------->---[monitor]
+			------------------------
+				debug module
+				|->msg - user defined message
+				|->var - variable
+
+echo "Hello world" <== linux commandline
+|
+- name: display to monitor
+  debug: msg="Hello world"
+- name: summary details
+  debug:
+    msg: This is sample data from ansible
+---------------------------------------------
+
+- name: display module execution result
+  debug: var=variableName
+
+
+
+
+
+result: {
+        "changed": true,
+        "cmd": [
+            "uptime"
+        ],
+        "delta": "0:00:00.006582",
+        "end": "2025-04-08 12:14:12.924126",
+        "failed": false,
+        "rc": 0,
+        "start": "2025-04-08 12:14:12.917544",
+        "stderr": "",
+        "stderr_lines": [],
+        "stdout": " 12:14:12 up  4:21,  3 users,  load average: 0.00, 0.03, 0.05",
+        "stdout_lines": [
+            " 12:14:12 up  4:21,  3 users,  load average: 0.00, 0.03, 0.05"
+        ]
+    }
+}
+
+result[changed] (or) result.changed
+result[stdout] (or) result.stdout
+
+######################################################################
+
+- name: task1
+  command: uptime
+  register: result
+- name: task2
+  command: date
+  register: result 
+- name: task3
+  debug: var=result.stdout # date command result ; not uptime results
+
+ 	Vs
+
+- name: task1
+  command: uptime
+  register: result1
+- name: task2
+  command: date
+  register: result2
+- name: task3
+  debug: var=result1.stdout # uptime command result
+- name: task4
+  shell: ps -e|wc -l
+  register: result3
+- name: task5
+  debug: var=result2.stdout # date command result
+
+########################################################################################
+
+Write a playbook
+
+task1 use command module  - ( uname -a) and register to register variable
+task2 use debug module - display kernel details
+task3 use debug module - display status code (rc)
+
+---
+- name: playbook
+  hosts: web
+  tasks:
+  - name: task1
+    command: uname -a
+    register: result
+  - name: task2
+    debug: msg="Kernel details:{{result.stdout}} status code is:{{result.rc}}"
+--------------------------
+Write a playbook
+
+task1 - use command - uptime - register it
+task2 - use copy module - file1 ->file2 - register it
+|
+task3 - use debug module display both register variables results to monitor.
+	
+---
+- name: playbook
+  hosts: web
+  tasks:
+  - name: task1
+    command: uptime
+    register: result
+  - name: task2
+    copy: src=file1 dest=/tmp/file2
+    register: output
+  - name: task3
+    debug: msg="uptime result:{{result.stdout}} copy module results:{{output}}"	
+----------------------------
+
+variable section
+----------------
+ - this is not a task section( there is no module execution )
+ - variable - hold the value
+ 		       -----
+ - vars: <== ansible keyword
+   ====
+    userdefinedVariable: value 
+
+
+ vars:
+  pkg: ksh
+ tasks:
+ - yum: name="{{pkg}}" state=installed
+ - debug: msg="package {{pkg}} installation is done"
+
+
+ vars:
+  pkg: gcc 
+ tasks:
+ - yum: name="{{pkg}}" state=installed
+ - debug: msg="package {{pkg}} installation is done"
+
+
+--------------------------------------------------------------
+vars: <== predefined 
+ pkg: httpd
+ version: 2.4
+ userdefined_label: value
+ ....
+-----------------------------
+---
+- name: install a package
+  hosts: localhost
+  vars:
+   pkg: zsh
+  tasks:
+  - name: task1- install a package
+    yum:
+     name: "{{pkg}}"
+     state: installed
+    register: result
+  - debug: msg="pacakge {{pkg}} installation status {{result.rc}}"
+
+===========================================================================
+Write a playbook
+
+task1 - execute group of commands and redirect results to external file
+
+	(uptime;hostname;df -Th /; ps -e|wc -l) >/tmp/r1.log
+	-----------------------------------------
+task2 - use fetch module copy external log file (/tmp/r1.log) to control machine
+	
+task3 - use command read /tmp/r1.log file - register to variable
+|
+task4 - use debug module - display registered result 
+------------------------------------------------------------------------------
+-------------------------------------------------------------------------
+
+copy src=file1 dest=/tmp/file2		[ node1: /tmp/file2
+					[ node2: /tmp/file2
+					[ node3: /tmp/file2
+|
+fetch src=/tmp/file2 dest=/tmp/
+
+[controlsystem: /tmp
+		  |
+		  |__node1/tmp/file2
+		  |__node2/tmp/file2
+		  |__node3/tmp/file2
+		     =====
+			|->remote hostname/
+
+---------------------------------------------------------------------------
+
+Write a playbook
+
+- initialize a package name httpd to variable # use vars:
+- use yum <or> dnf - install a package
+- use service ; start a service 
+- use debug - display service module results
+
+---
+- name: ansible-activity-2
+  hosts: shan # OL8
+  vars:
+    pkg: httpd
+  tasks:
+  - name: install a package
+    dnf: name="{{pkg}}" state=installed
+  - name: start a service
+    service: name="{{pkg}}" state=started
+    register: output
+  - debug: var=output
+
+-------------------------------------------------------------------
+vars:
+  myvar: 120
+tasks:
+- name: task1
+  debug: var=myvar  ->120
+- name: task2
+  debug: var=myvar  ->120
+- name: task3
+  debug: var=myvar  ->120
+- name: task4
+  debug: var=myvar  ->120
+- name: task5
+  debug: var=myvar  ->120
+- name: task6
+  debug: var=myvar  ->120
+
+
+vars:
+  myvar: 120
+tasks:
+- name: task1
+  debug: var=myvar  ->120
+- name: task2
+  debug: var=myvar  ->120
+
+- name: task3
+  vars:
+    myvar: 500
+  debug: var=myvar  ->500
+
+- name: task4
+  debug: var=myvar  ->120
+- name: task5
+  debug: var=myvar  ->120
+- name: task6
+  debug: var=myvar  ->120
+
+###########################################################
+- name: install the latest version of Apache
+  yum:
+    name: httpd
+    state: latest
+  |
+ansible <node> -m yum -a "name=httpd state=latest"
+
+####################################################################
+---
+- name: variable examples
+  hosts: localhost
+  vars:
+    pkg: httpd
+    compilers: [gcc,g++,irb] # array
+    netinfo: {type: ethernet,interface: [eth0,eth1],ipaddr: 127.0.0.1}
+  tasks:
+  - name: display-package name
+    debug: msg="Package name is:{{pkg}}"
+  - name: display compiler details
+    debug: msg="C compiler:{{compilers.0}} C++ compiler:{{compilers.1}}"
+  - name: network details
+    debug: msg="Type of network is:{{netinfo.type}}"
+  - debug: var=netinfo.interface.0 # eth0
+  - debug: var=netinfo.interface.1 # eth1
+  - debug: var=netinfo.ipaddr # 127.0.0.1
+#####################################################################################
+ansible variables (or) fact variables (or) builtin variables
+-------------------------------------------------------------
+ |-> variable name starts with ansible_<name>
+			       ================
+
+ ex: ansible_user
+     ansible_env
+     ansible_os_family
+     ansible_...
+
+ |-> global scope 
+
+ |-> ansible <remoteNode> -m setup 
+
+     ansible node1 -m setup|less  # read page by page
+     ansible node2 -m setup|less  # read page by page
+
+####################################################################################
+
+Write a playbook - display remote node os details
+----------------
+ansible <node> -m setup -a "filter=ansible_os*"
+|
+tasks:
+- service_facts - module - retrieve facts about services
+			   and then prints/display
+
+
+#####################################################################################
