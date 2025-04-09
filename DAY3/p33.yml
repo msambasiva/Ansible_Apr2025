@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: msg="App name is:{{myapp}} running port:{{myport}} DB:{{mydb}}"
+    ignore_errors: true
+  - debug: msg="Thank you"

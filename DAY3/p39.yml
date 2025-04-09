@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    debug: var=item
+    loop:
+    - pA
+    - pB
+    - pC
+  - name: task2
+    debug: var=item
+    loop:
+    - {K1: V1,K2: V2,K3: 134}
+  - name: task3
+    debug: msg="{{item.K1}} {{item.K2}} {{item.K3}}"
+    loop:
+    - {K1: V1,K2: V2,K3: 134}

@@ -1,0 +1,5 @@
+---
+- hosts: all
+  tasks:
+  - debug: msg="App name is:{{app}} port number:{{port}} Config:{{conf}}"
+  - debug: msg="dev env is:{{dev}}"

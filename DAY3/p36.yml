@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  vars:
+    pkgs: [gcc,zsh,irb]
+  tasks:
+  - name: task1
+    yum: name="{{item}}" state=installed
+    with_items: pkgs
+

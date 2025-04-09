@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    debug: msg="OK-1"
+  - name: task2
+    debug: msg="OK-2"
+    when: ("8.5"|float) >9.0
+  - name: task3
+    debug: msg="OK-3"
+    when: ansible_os_family == "Debian" 
+  - name: task4
+    debug: msg="OK-4"
+    when: true
+  - name: task5
+    debug: msg="OK-5"
+    when: false
+  - name: task6
+    debug: msg="OK-6"
+    when: ansible_os_family == "RedHat"

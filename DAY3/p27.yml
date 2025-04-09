@@ -1,0 +1,9 @@
+---
+- hosts: web
+  tasks:
+  - name: install webserver-task1	
+    dnf: name=httpd state=installed # node1 ->OK ; node2 ->Error
+
+  - name: install webserver-task2
+    apt: name=apache2 state=present # node1 ->Error ; node2 ->OK
+

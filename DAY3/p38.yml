@@ -1,0 +1,24 @@
+---
+- hosts: node1
+  vars:
+    test_users: [test1,test2,test3,test4]
+  tasks:
+  - name: delete a user
+    user: name="{{item}}" state=absent # delete list of users one by one
+    with_items: "{{test_users}}"
+
+
+# loop:
+#  - input is list
+
+#  Vs
+# with_items:
+#  - inputs are list and namedArray 
+#
+
+#   [pa,pb,pc] - not named by any variable //list 
+#
+#  vars:
+#   v: [pa,pb,pc] - named variable //array 
+#   |__ using v - we can fetch the value
+#  

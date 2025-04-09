@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: var=item
+    when: item == "OL7"
+    loop:
+    - OL5
+    - OL6
+    - OL7
+    - OL8

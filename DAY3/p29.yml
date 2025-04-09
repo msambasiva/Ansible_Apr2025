@@ -1,0 +1,13 @@
+---
+- hosts: web
+  vars:
+    pkgs: [httpd,apache2]
+  tasks:
+  - name: install webserver-task1	
+    dnf: name="{{pkgs[0]}}" state=installed # node1 ->OK ; node2 ->Error
+    when: ansible_os_family == "RedHat"
+
+  - name: install webserver-task2
+    apt: name="{{pkgs[1]}}" state=present # node1 ->Error ; node2 ->OK
+    when: ansible_os_family == "Debian"
+

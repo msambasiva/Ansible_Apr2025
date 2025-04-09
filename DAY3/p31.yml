@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    debug: msg="OK1"
+  - command: /bin/true # OK
+  - name: task3
+    command: /bin/false #Not-OK
+  - debug: msg="OK2"
+  - debug: msg="OK3"
+  - debug: msg="OK4"

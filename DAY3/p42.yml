@@ -1,0 +1,9 @@
+---
+- hosts: node1
+  vars:
+    myvar: ansible_memo
+  tasks:
+  - debug: msg="{{item.user_gid}}"
+    with_items: "{{ansible_facts}}"
+    ignore_errors: true
+  - debug: var=ansible_facts.user_id

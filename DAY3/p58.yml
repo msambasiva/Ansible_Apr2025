@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  tasks:
+  - name: install zsh shell
+    yum: name=zsh state=installed
+    notify: callme
+  - debug: msg="OK-2"
+  - debug: msg="OK-3"
+  - debug: msg="OK-4"
+  handlers:
+  - name: callme
+    shell: ls -l /etc/shells
+    register: result
+  - debug: var=result

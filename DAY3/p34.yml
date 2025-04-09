@@ -1,0 +1,13 @@
+---
+- name: demo iteration
+  hosts: localhost
+  tasks:
+  - name: display list of servers
+    debug: msg="server name is:{{item}}" # item is predefined special variable
+    with_items: ['unix','linux','OL5','OL6','OL7']
+  - name: list of available shells
+    debug: var=item
+    with_items:
+    - "/bin/sh"
+    - "/bin/bash"
+    - "/bin/ksh"

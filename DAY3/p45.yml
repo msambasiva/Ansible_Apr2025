@@ -1,0 +1,6 @@
+---
+- hosts: all
+  tasks:
+  - debug: var=pkg  # web group
+  - debug: var=config_files # db group
+  - debug: msg="{{ansible_os_family}} - package name is:{{pkg}}"

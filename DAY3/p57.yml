@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  tasks:
+  - command: echo "OK"
+  - debug: msg="OK"
+  - shell: echo "OK"
+  - debug: msg="OK"

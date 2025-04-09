@@ -1,0 +1,7 @@
+---
+- hosts: all
+  tasks:
+  - debug: var=pkg  # web group
+    #ignore_erros: true
+  - debug: var=config_files # db group
+    #ignore_errors: true
