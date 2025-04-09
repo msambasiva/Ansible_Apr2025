@@ -1,0 +1,651 @@
+Recap
+-------
+ansible playbook
+------------------
+target section 
+ - remotenode - hosts: <remoteNode>
+ - become: true
+ - gather_facts: false
+
+variable section
+ vars:
+  userdefinedVariable: value <== initialization
+
+task section
+actual ansible module execution - adhoc commands
+execute on remote system 
+tasks:
+- name: <name of the task>
+  module: .....
+----------------------------------------------------
+file:p1.yml
+-------------
+---
+- name: playbook-play1
+  hosts: web
+  tasks:
+  - name: task1  	
+    command: uptime
+  - name: task2
+    yum: name=gcc state=installed
+  - name: task3
+    copy: src=file1 dest=/etc/file.conf
+
+- name: playbook-play2
+  hosts: dev
+  tasks:
+  - name: taskA
+    shell: df -Th|wc -l
+  - name: taskB
+    command: lsmod
+    register: result
+  - name: taskC
+    debug: var=result.stdout_lines
+ 
+
+play Vs task
+----    -----
+|         |->single module execution
+|
+collection of task (1 or more modules)
+#################################################################
+Recap ansible variable
+----------------------
+ansible_<name> <== 
+using ansible variable - will get remote nodedetails(IP,kerenel,process,filesystem,etc.,)
+
+Conditional statement
+-----------------------
+ |->relational - single test 
+ |->logical  - more than one test
+
+
+relational operators
+---------------------
+== != < <= > >= 
+
+bool ->True False true false on off yes no 
+
+"10" <== string 
+
+"10" -> convert to int -> 10
+	---------------
+"10"|int <== typecasting 
+"true"|bool <== typecast to bool
+1|bool <== typecast to bool ->True
+---
+0|bool <== typecast to bool ->False
+
+when:<space>Expression
+----
+|->keyword - this is not a module
+|->from control system-ansible(python) - test the expression -True->module will be pushed  to remote system.
+
+test the expression ->False ->skipped the module (there is no execution on remote m/c)
+
+hosts: web
+	|->[node1 - OL7	   ]
+	|->[node2 - ubuntu ]
+
+tasks:
+- name: install webserver-task1	
+  yum: name=httpd state=installed # node1 ->OK ; node2 ->Error
+
+- name: install webserver-task2
+  apt: name=apache2 state=present # node1 ->Error ; node2 ->OK
+
+
+- name: task1
+  command: uptime
+  when: ansible_os_family == "RedHat" <--(1)
+
+- name: task2
+  when: ansible_os_family == "Debian" <--(1)
+  command: uname -a
+
+
+####################################################################################
+
+---
+- name: <playbookName> ---- target section
+  hosts: <remoteNode>  ----
+  tasks:  <-----------------
+  - name: <taskName1>
+    module: params	   task section
+  - name: <taskName2>	
+    module: params
+	  <-----------------
+
+  name key is optional
+  ----
+[{name: Task1,command: uptime},{name: Task2,command: date},{},{}]
+|----------------------------
+|	object/dict
+Array
+---
+- hosts: <remoteNode>
+  tasks:
+  - module1: params
+  - module2: params 
+  - name: task3
+    module3: params
+  - module4: params
+
+
+ansible-doc <moduleName>
+
+
+examples:
+
+- name: <name of the task>
+  module: 
+	...
+	...
+
+###############################################################################
+we can pass runtime inputs(or) commandline argument inputs
+#ansible-playbook p33.yml -e "myapp=Flask myport=5000 mydb=sqlite"
+			  --- ====================================
+file:p33.yml
+---
+- hosts: localhost
+  tasks:
+  - debug: msg="App name is:{{myapp}} running port:{{myport}} DB:{{mydb}}"
+    ignore_errors: true
+  - debug: msg="Thank you"
+---------------------------------------------------------------------------------
+
+when - conditional test
+|
+loop,with_items,with_... <== like looping statements
+
+collection style loop
+----------//array;object 
+
+loop:
+
+debug: msg="server name is:{{item}}" # pre-defined variable
+with_items:
+- unix
+- linux
+- OL5
+- OL6
+
+
+- debug: msg="server name is:{{item}}"
+  with_items: ['unix','linux','OL5','OL6','OL7']
+	    ansible_var...
+- debug: var=item
+  with_items: ['unix','linux','OL5','OL6','OL7']
+
+
+---------------------------------------------------------------------
+
+tasks:
+- name: task1
+  yum: name=gcc state=installed
+- name: task2
+  yum: name=zsh state=installed
+- name: task3
+  yum: name=irb state=installed
+		Vs
+tasks:
+- name: task1
+  yum: name="{{item}}" state=installed
+  loop:
+  - gcc
+  - zsh
+  - irb
+	
+		Vs
+vars:
+  pkgs: [gcc,zsh,irb]
+tasks:
+- name: task1
+  yum: name="{{item}}" state=installed
+  loop: pkgs
+
+#######################################################################
+	node1
+     +------------+
+     |1.create user groups
+     |2.add user to groups
+     |		      |->primary group     - groupName,groupID,uID...
+     |		      |->secondary groups 
+     |   
+     +------------+
+
+useradd
+groupadd
+
+groupadd =>  group module
+
+	    ansible  node1 -m group -a "name=admin" # admin group is created
+	    ansible  node1 -m user -a "name=anu group=admin state=present" # adding new user anu - belongs to admin
+
+	    ansible node1 -m group -a "name=sales" # sales group is created
+	    ansible node1 -m user -a "name=leo group=admin groups=sales state=present"
+					|
+	adding new user called leo belongs to admin (primary) secondary group is sales
+
+
+userA userB userC 
+
+userA@host~]$ su -     userB@host~]$ su -		 userC@host~]$ su -
+root@host~]#  	       <not-allows to enter to root>	 Enter a password: ....
+							 root@host~]# 
+							
+							usermod userC -g wheel
+								         ------
+									  |->root
+									  |->userC
+#######################################################################
+
+write a playbook
+- task1
+  |
+ group: name="{{item}}"
+ loop:
+  - sales
+  - prod
+  - DBA
+  - admin
+
+- task2  # ansible-doc user 
+  |
+ add users to dept   
+ ---------
+ user:  name="<Name of the user>" group="<primaryGroup>" groups="<secondaryGroup>"
+	uid=<userID> state=present
+
+ loop:
+ - {name: test1,group: sales,groups: prod,uid: 1234}
+ - {name: test2,group: prod,groups: sales,uid: 1235}
+ - {name: test3,group: DBA,groups: sales,uid: 3213}
+ - {name: test4,group: sales,groups: DBA,uid: 5215}
+ - {name: test5,group: admin,groups: DBA,uid: 5213}
+###################################################################################
+
+ 
+---
+- name: create user groups
+  hosts: node1
+  tasks:
+  - name: create list of dept groups - task1
+    group: name="{{item}}"
+    loop:
+    - sales
+    - prod
+    - DBA
+    - admin
+  - name: add users to the department - task2
+    user:
+     name: "{{ item.K1 }}"
+     group: "{{ item.K2 }}"
+     groups: "{{ item.K3 }}"
+     uid: "{{item.K4}}"
+     state: present
+    loop:
+    - {K1: 'Ua',K2: 'sales',K3: 'prod',K4: 1234}
+    - {K1: 'Ub',K2: 'prod',K3: 'sales',K4: 2232}
+    - {K1: 'Uc',K2: 'DBA',K3: 'admin',K4: 3435}
+    - {K1: 'Ud',K2: 'admin',K3: 'DBA',K4: 2436}
+########################################################################################
+
+
+with_fileglob:
+- "*./*.log"
+
+with_file:
+- /etc/hosts
+- /etc/resolv.conf
+
+with_url:
+- https://www.abc.com
+- https://www.xyz.org
+--------------------------------------------------------------------------
+
+inventory_file
+
+[web] <== group Name
+node1 
+node2 
+node3
+node4
+
+[db] <== group Name
+node4 
+node5
+
+set the host(or)node specific variable
+--------------------------------------
+ |->create a directory => host_vars/ <== pre-defined directory
+			   |
+			  file: node1.yml   node2.yml     node3.yml       node4.yml
+				---	    ---           ---             ---
+				app: flask  app: django   app:fastApi     app: testApp
+			        port: 5000  conf: manage.cfg
+		
+file: p1.yml
+--------------
+- hosts: web
+  tasks:
+  - debug: var=app 
+		|______flask - node1
+		|______ django - node2
+		|_______ fastApi - node3
+		|________ testApp - node4
+
+  - debug: var=port
+		 |--->node1 ->5000
+		 |--->node2 ->undefined variable
+		 |--->node3 ->undefined variable
+		 |--->node4 ->undefined variable
+
+
+
+inventory_file
+
+[web] <== group Name
+node1 
+node2 
+node3
+node4
+
+[db] <== group Name
+node4 
+node5
+
+To set the varaible - group specific 
+----------------------------------------
+mkdir group_vars/
+cd group_vars
+file: web.yml   db.yml
+-------------	------
+---		---
+mydb: oracle	mydb: sqlite3
+myapp: testApp  myapp: demoApp
+sh: /bin/bash   myvar: 120
+
+file: p2.yml
+--------------
+- hosts: all
+  tasks:
+  - debug: var=mydb
+		|-->[web]
+			|->node1,node2,node3,node4 - oracle
+	        |-->[db]
+		       |-->node4,node5 - sqlite3
+
+  - debug: var=myapp
+		|-->[web]
+		      |->node1,node2,node3,node4 - testApp
+	        |-->[db]
+		       |-->node4,node5 - demoApp
+
+##################################################################
+if a variable is defined in both a group and host variale file, the host variable will
+be used. (host variable take precedence over group variables)
+##################################################################
+#######################################################################################
+
+[root@krosumlabs ansible_training]# cat myinventory
+[web]
+shan ansible_ssh_host=192.168.1.9 ansible_ssh_pass=apelix ansible_python_interpreter=/bin/python3
+
+[db]
+node1 ansible_ssh_host=192.168.1.4 ansible_ssh_pass=apelix
+[root@krosumlabs ansible_training]# cat host_vars/shan.yml
+---
+app: flask
+port: 5000
+conf: /test.conf
+pkg: gcc
+[root@krosumlabs ansible_training]# cat group_vars/web.yml
+---
+pkg: [httpd,apache2]
+[root@krosumlabs ansible_training]#
+
+
+TASK [Gathering Facts] *********************************************************
+ok: [node1]
+ok: [shan]
+
+TASK [debug] *******************************************************************
+ok: [shan] => {
+    "pkg": "gcc"
+}
+ok: [node1] => {
+    "pkg": "VARIABLE IS NOT DEFINED!"
+}
+
+TASK [debug] *******************************************************************
+ok: [shan] => {
+    "config_files": "VARIABLE IS NOT DEFINED!"
+}
+ok: [node1] => {
+    "config_files": {
+        "conf": [
+            "/etc/f1.cfg",
+            "/etc/f2.cfg"
+        ]
+    }
+}
+
+TASK [debug] *******************************************************************
+ok: [shan] => {
+    "msg": "RedHat - package name is:gcc"
+}
+fatal: [node1]: FAILED! 
+######################################################################################
+
+delegate_to: <nodeName> <== task on specific node  - 1
+
+[web]
+node1
+node2
+node3
+node4
+
+hosts: web
+
+run_once: true
+
+delegate_to: <nodeName>
+run_once: true 
+==========================================================================
+---
+- hosts: web
+  gather_facts: no
+  tasks:
+  - debug: msg="1st task"
+  - debug: msg="2nd task"
+    delegate_to: shan
+    run_once: true
+  - debug: msg="3rd task"
+==================================================================================
+wait_for - module
+==================
+ |-> pause (or) wait for a certain condition to be met before continuing with the rest
+     of the tasks in a playbook.   ----------
+				   |->remote host - port/service/pattern/filepath
+
+ timeout - seconds  - wait before moving to next
+   |-> default: 300 secs (5minutes)
+
+ delay: seconds - defaults 0 seconds
+        --------
+	  |->the amount of time - seconds - to wait before starting the timeout(wait)
+ 
+
+
+
+- hosts: node1
+  tasks:
+  - name: task1-wait until the search pattern should match from inputfile
+    wait_for:
+      path: /tmp/r2.log
+      search_regex: tcsh
+      timeout: 25
+    ignore_errors: yes
+  - name: task2
+    debug: msg="OK-2"
+  - name: task3
+    debug: msg="OK-3"
+
+####################################################################################
+			remote mc
+- command: uptime  -    python - dependency package (or) python is required package
+- shell: uptime	   -    python - dependency package (or) python is required package
+
+- raw: uptime	   -   
+		 if python is not exists -> install python ->execute the module task			 ------------------------
+				
+- shell: /bin/bash /home/userA/p1.sh
+
+file: pa.sh
+-------------
+
+-------------
+ls -l pa.sh
+rw-r--r--
+chmod a+x pa.sh
+rwxr-xr-x pa.sh
+./pa.sh 
+script: src=pa.sh dest=/tmp/pb.sh
+			|--->target m/c:  ls -l /tmp/pb.sh
+					  rw-r--r--
+file: path=/tmp/pb.sh mode=0755
+
+
+- script:
+    src: pa.sh
+    dest: /tmp/pb.sh			- copy: src=pa.sh dest=/tmp/pb.sh mode=0755
+- file:				Vs	- shell: /tmp/pb.sh
+    path: /tmp/pb.sh
+    mode: 0755
+- shell: /tmp/pb.sh
+=======================================================================================
+
+To create customeservice (or) unitfile (or) userprocess ->systemprocess
+(or) while os loading time myscript/objectcode should get started
+
+
+p1.py p1.sh p1.cpp ->pobj   ./pobj <== application code ->system process
+
+file: p1.txt
+--------------
+command1
+command2
+command3
+---------------//
+
+condition:
+# root user (or) sudo user
+# -------------------------
+
+step 1: create your own unit file (or) service file
+	|
+	/etc/systemd/system/filename.service  <== filename is userdefined
+	[Unit]
+	Description=Own description
+ 	[Service]
+	ExecStart=<map your executable code file path> (ex: /bin/command /home/userA/p1.sh)
+	[Install]
+	WantedBy=multi-user.target
+	
+	save this file and exit
+
+step 2: reload the daemon # systemctl daemon-reload
+|
+step 3: to start automatically -> systemctl enable filename.service 
+|					   
+step 4: to start now -> systemctl start filename.service
+			systemctl status filename.service
+
+
+
+STEP 0:
+=========
+
+[root@krosumlabs ansible_training]# cat /root/p1.sh
+#!/bin/bash
+
+while :
+do
+        uptime >>/var/log/LB.log
+        sleep 7
+done
+[root@krosumlabs ansible_training]# ls -l /root/p1.sh <== file mustbe executable 
+-rwxr-xr-x. 1 root root 64 Apr  9 17:01 /root/p1.sh
+[root@krosumlabs ansible_training]#
+
+STEP 1: 
+========
+[root@krosumlabs ansible_training]# cat /etc/systemd/system/ab.service
+[Unit]
+Description=About CPU LoadBalance
+
+[Service]
+ExecStart=/root/p1.sh
+
+[Install]
+WantedBy=multi-user.target
+[root@krosumlabs ansible_training]#
+
+STEP 2:
+==========
+systemctl daemon-reload
+
+STEP 3:
+========
+systemctl enable ab.service 
+
+STEP 4:
+========
+systemctl start ab.service
+
+STEP 5:
+=======
+systemctl status ab.service
+#######################################################################################
+
+handler section
+===============
+ |-> secondary task 
+ |-> we will use ansible module
+ |-> execute only one time - after finished all the primary task execution
+ |-> this handler task execute based on primary task notification (notify)
+     notify - invoke the handler
+ |-> handlers: <== keyword
+  
+  if primary tasks execution ->change the system state  ->if state is changed invoke the handler block
+ state: true 
+ --------------
+
+
+---
+- hosts: <remoteNode>
+  tasks:
+  - name: task1
+    module: params
+    notify: <NotifyName> ------------>------
+  - name: task2				    |
+    module: params			    |
+  handlers: 				    |
+  - name: <NotifyName>  # -------<----------
+    module: params      # after finished all the primary task execution
+
+
+Note:
+------
+debug module ->state is false - state changed - false (there is no changes in the state)
+command,shell ->state is true - state changes - true ( there is changes in the m/c state)
+
+tasks:
+- yum: name=httpd state=installed
+  notify: call
+handlers:
+- name: call
+  service: name=httpd state=started
+#########################################################################################
