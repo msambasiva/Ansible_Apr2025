@@ -1,0 +1,13 @@
+---
+- hosts: web,localhost
+  vars:
+  - sname: Linux
+  - IP: 127.0.0.1
+  - prefix: 24
+  tasks:
+  - name: create new IPConfig file
+    template: src=file1.j2 dest=/tmp/IP1.conf
+  - name: copy module
+    copy: src=file1.j2 dest=/tmp/IP2.conf
+
+ 

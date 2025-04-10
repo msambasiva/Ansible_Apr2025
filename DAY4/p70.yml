@@ -1,0 +1,11 @@
+---
+- hosts: node1
+  tasks:
+  - name: add some content to /tmp/IP1.conf
+    blockinfile:
+      path: /tmp/IP1.conf
+      block: |
+       # Append new data
+       Type = Ethernet
+       Interface = eth0
+      insertafter: "^#"

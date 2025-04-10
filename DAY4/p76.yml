@@ -1,0 +1,7 @@
+---
+- hosts: node1,localhost
+  tasks:
+  - name: create a log file
+    template: src=file4.j2 dest=/tmp/r1.log
+  - name: copy /tmp/r1.log file into control mc
+    fetch: src=/tmp/r1.log dest=/tmp

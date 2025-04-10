@@ -1,0 +1,23 @@
+---
+- hosts: web
+  vars:
+    pkgs: [httpd,apache2]
+  tasks:
+  - name: task1
+    dnf: name="{{pkgs[0]}}" state="installed"
+    when: ansible_os_family == "RedHat"
+    register: result1
+    ignore_errors: true
+    notify: call-one
+  - name: task2
+    apt: name="{{pkgs[1]}}" state="present"
+    when: ansible_os_family == "Debian"
+    register: result2
+    ignore_errors: true
+    notify: call-two
+  handlers:
+  - name: call-one
+    service: name="{{pkgs[0]}}" state=started
+  - name: call-two
+    service: name="{{pkgs[1]}}" state=started
+

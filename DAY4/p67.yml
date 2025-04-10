@@ -1,0 +1,9 @@
+---
+- hosts: node1
+  tasks:
+  - name: append a content
+    lineinfile:
+      path: /tmp/IP1.conf
+      line: "onboot = yes"
+      insertafter: EOF
+      

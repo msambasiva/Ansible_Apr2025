@@ -1,0 +1,10 @@
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    blockinfile:
+      path: /tmp/IP1.conf
+      marker: "Custom marker line"
+      block: |
+        shell = /bin/bash
+        IP = 127.0.0.1

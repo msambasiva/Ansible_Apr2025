@@ -1,0 +1,5 @@
+---
+- hosts: node1,localhost
+  tasks:
+  - name: create a log file
+    template: src=file4.j2 dest=/tmp/r1.log

@@ -1,0 +1,17 @@
+---
+- name: set_fact module example
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: uname
+    register: result
+  - debug: var=result.stdout_lines
+  - name: task2
+    set_fact: K1="{{result.stdout|list}}"
+  - debug: var=K1
+  - name: task3
+    set_fact: K1="{{result.stdout|upper}}"
+  - debug: var=K1
+  - name: display json ->yaml
+    set_fact: k2="{{result.stdout_lines|to_nice_yaml}}"
+  - debug: var=k2

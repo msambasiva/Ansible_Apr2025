@@ -1,0 +1,6 @@
+Memory Info details from {{ansible_distribution}}
+--------------------------------------------------
+{% for var in ansible_memory_mb %}
+  {{var}} - {{ansible_memory_mb[var]}}
+{% endfor %}
+--------------------------------------------------

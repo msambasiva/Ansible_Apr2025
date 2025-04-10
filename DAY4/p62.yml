@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    yum: name=zsh state=installed
+    notify: one
+  - name: task2
+    user: name=vijay state=present
+    notify: two
+  - name: task3
+    debug: msg="This is task3 - running before handler block"
+  handlers:
+  - name: one
+    debug: msg="package zsh installation"
+  - name: two
+    debug: msg="user creation"

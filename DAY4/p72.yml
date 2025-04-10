@@ -1,0 +1,11 @@
+---
+- hosts: node1
+  vars:
+  - sname: Linux
+  - IP: 127.0.0.1
+  - prefix: 24
+  tasks:
+  - name: create new config file
+    template:
+      src: file1.j2
+      dest: /tmp/r1.conf

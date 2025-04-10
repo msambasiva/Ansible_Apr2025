@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  vars:
+    v1: 10
+    v2: 10.3
+    v3: data
+    v4: true
+    v5: []
+    v6: {}
+  tasks:
+  - set_fact: K1="{{v1|type_debug}}"
+  - debug: var=K1
+  - debug: msg="{{10|type_debug}}"

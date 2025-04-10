@@ -1,0 +1,14 @@
+---
+- name: play1
+  hosts: localhost
+  tasks:
+  - name: task1
+    command: date
+  - name: task2
+    command: date
+    changed_when: false
+  - name: task3
+    debug: msg="OK"
+  - name: task4
+    debug: msg="OK"
+    changed_when: true
