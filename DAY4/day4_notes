@@ -1,0 +1,432 @@
+Predict result
+===============
+Q1)
+------------------------------------
+vars:
+- myvar: "abc"
+tasks:
+- debug: msg="Task1"
+  when myvar == "abc"
+- debug: msg="Task2"
+  when myvar != "abc"
+------------------------------------
+
+Q2)
+------------------------------------------------------------------------
+/usr/lib/python2.7/site-packages/ansible/modules/system/service.py
+				 ------- ======= ------ _____________
+/usr/lib/python2.7/site-packages/ansible/modules/files/copy.py
+					 ======= ----- ________
+/usr/lib/python2.7/site-packages/ansible/modules/files/template.py
+					 ======= ----- ___________
+
+when: <booleanType> (True False true false on off yes no)
+  tasks:
+    - name: Check if Apache service is running
+      ansible.builtin.service:
+        name: apache2
+        state: started
+      register: apache_status
+
+    - name: Stop Apache service if it is running
+      ansible.builtin.service:
+        name: apache2
+        state: stopped
+      when: apache_status.changed
+
+    - name: Start Apache service if it is stopped
+      ansible.builtin.service:
+        name: apache2
+        state: started
+      when: not apache_status.changed
+------------------------------------------------------------------------
+Q3)
+---------------------------------------
+tasks:
+- command: /bin/true
+- command: /bin/true
+- command: /bin/false  ---------failed task - exit  
+- debug: msg="End of the task"  -- won't display
+
+Vs
+tasks:
+- command: /bin/true
+- command: /bin/true
+- command: /bin/false
+  ignore_errors: true
+- debug: msg="End of the task"  # display
+
+---------------------------------------
+Q4)
+---------------------------------------
+vars:
+ port: 4500		 
+tasks:
+- debug: var=port  ->5000 
+  vars:
+    port: 5000
+- debug: var=port  ->4500 
+-----------------------------------------
+Q5) 
+  vars:
+    myvar: lsmod
+  tasks:
+  - command: "{{myvar}}"
+    register: result
+    notify: call
+    changed_when: false   # there is no changes in the remote m/c state
+  handlers:		  # so handler block won't notified - there is no results from
+  - name: call		  # handler block
+    debug: var=result.stdout
+----------------------------------------------
+Identify the errors
+---------------------
+tasks:
+- name: task1
+  command: /bin/true  
+  shell: ps -e|wc -l   <==  
+- name: task2
+  yum: name=ksh state=present 
+########################################################
+tasks:
+- command: ps			- command: ps
+  register: result                register: result
+  debug: var=result   <==  Vs   - debug: var=result
+- debug: msg="OK"               - debug: msg="OK"
+########################################################
+  vars:
+   code: 4590
+  tasks:
+  - debug: msg="{{CODE}}" # 9090
+    vars:
+     CODE: 9090
+  - debug: msg="{{CODE}}" # Error - undefined variable 
+
+########################################################
+
+Note:
+------
+by default in ansible module
+debug module ->state is false - state changed - false (there is no changes in the state)
+command,shell ->state is true - state changes - true ( there is changes in the m/c state)
+....
+changed_when: <bool_Value>
+debug module ->state true
+command,shell ->state false
+
+
+tasks:
+- name: install httpd
+  yum: name=httpd state=installed
+- name: start a webserver
+  service: name=httpd state=started
+
+	Vs
+tasks:
+- name: install httpd
+  yum: name=httpd state=installed
+  notify: call
+handlers:
+- name: call
+  service: name=httpd state=started
+
+		[node1]	 		[node2 ] 	    [node3]
+		rpm -q httpd		rpm -q httpd	    rpm -q httpd
+		not installed		installed	    installed
+					httpd - inactive    httpd - active
+
+
+tasks:
+- name: install httpd
+  yum: name=httpd state=installed
+  notify: call
+  changed_when: true
+handlers:
+- name: call
+  service: name=httpd state=started
+
+########################################################################################
+Write a playbook
+|
+|->variable section
+	- initialize a package name 
+	  pkgs: [httpd,apache2]
+
+|-> task1 - install httpd package if remote node is RedHat 
+	    register - module result to register variable 
+	    notify to handler
+
+|-> task2 - install apache2 package if remote node is Debian
+	    register - module result to register variable
+	    notify to handler
+
+|-> handler section
+	|-> notify - start http service 
+	|-> notify - start apache2 service 
+
+
+---
+- hosts: web
+  vars:
+    pkgs: [httpd,apache2]
+  tasks:
+  - name: task1
+    dnf: name="{{pkgs[0]}}" state="installed"
+    when: ansible_os_family == "RedHat"
+    register: result1
+    ignore_errors: true
+    notify: call-one
+  - name: task2
+    apt: name="{{pkgs[1]}}" state="present"
+    when: ansible_os_family == "Debian"
+    register: result2
+    ignore_errors: true
+    notify: call-two
+  handlers:
+  - name: call-one
+    service: name="{{pkgs[0]}}" state=started
+  - name: call-two
+    service: name="{{pkgs[1]}}" state=started
+
+#####################################################################################
+template - module
+-----------------
+
+jinja2 template - code
+-----------------
+ {{variable}}
+  
+ {{expression}}
+
+ {% if condition %}
+
+ {% endif %}
+
+ {% for variable in collection %}
+	
+ {% endfor %}
+
+<html>
+...
+</html>
+----------//static content + dynamic value (jinja2)
+
+web page
+-------------------______ 
+partyName  Result: |___|   <== 
+-------------------------- 
+<p><h1><font color=green> partyName Result:{{n}}</font></h1></p>
+			  ---------------- =====
+				
+template - module - like copy module 
+--------                 -----
+
+file1
+------
+target machine name is:{{ansible_os_family}}
+count value is:{{count}}
+------
+
+vars:
+  count: 567
+tasks:
+- copy: src=file1  dest=/tmp/file2   ------------> cat /tmp/file2
+				  target machine name is:{{ansible_os_family}}
+				  count value is:{{count}}
+		Vs
+- template: src=file1 dest=/tmp/file3
+				      ----------> cat /tmp/file3
+				      target machine name is:RedHat
+				      count value is:567
+
+=============================================================================
+- hosts: node1
+  tasks:
+  - name: append a content
+    lineinfile:
+      path: /tmp/IP1.conf
+      line: "onboot = yes"
+      insertafter: EOF
+
+ansible-doc blockinfile 
+		|
+		path:
+		block:
+		insertafter: 
+
+#########################################################################################
+
+[ControlNode]         [node1] [node2] ... [nodeN]
+		
+ |
+ |-> To get system metric(measurement) details
+		  |->cpu Info, memory Info, diskIO , uname -a,network etc.,
+		     ....................................................
+				using ansible variable			
+    
+ |-> to write data to file in formatted way - use template 
+
+ |-> using fetch module - copy remote node log details to control system.
+
+prometheus.yml
+|		|<---------------------------ansible inventory file
+{% for var in group[all] %}				|
+	      ----------				[web]
+ {{var}} group[all][var]				 node1
+{ % endfor %}						 node2
+							[db]
+							 node3
+							 node4
+							
+########################################################################################
+
+
+tasks:
+- name: task1
+  module: params
+  vars:
+    myvar: value
+  ignore_errors: 
+  when: 
+- name: task2
+  module: params
+  vars:
+    mycode: ...
+  ignore_errors: 
+  when:
+- name: task3
+  ..
+|
+Single block style code
+
+block - group of tasks 
+       ----------------------//apply common when,become,ignore_errors
+|
+Handle errors with rescue,always -like try/except/finally
+
+
+tasks:
+- name: block style code
+  block:
+  - name: task1 
+    module1: params
+  - name: task2
+    module2: params
+  - name: task3
+    module3: params
+  rescue:
+  - name: handle the failure
+    module: params
+  always:
+  - name: always running 
+    module: params
+- name: taskA
+  module: params
+- name: taskB
+  module: params
+
+
+
+
+
+
+
+
+
+
+
+
+tasks:
+- name: block style code
+  block:
+  - name: task1            # task1 is success
+    module1: params		
+  - name: task2					
+    module2: params	   # task2 is failed  ---->---
+  - name: task3					     |
+    module3: params				     |
+  rescue:					     |
+  - name: handle the failure  			     |
+    module: params		----<----------------|
+  always:	|______________
+  - name: always running  _____|
+    module: params	   -<--
+- name: taskA
+  module: params
+- name: taskB
+  module: params
+
+# from the above - task3 never execute 
+
+======================================	
+
+set_fact - module
+---------
+
+vars:
+  variable: <value>
+	    -------
+  var1: 100
+
+How to initialize module execution results to variable 
+		  ---------------- ------------------ ?
+	set_fact: user_defined_key=< execution_result >
+		  --------------------------------------
+					(1)    (2)
+	set_fact: user_defined_key="{{input|ansible_filter}}"
+					|_______| |
+			|_________________________|
+				(3)
+	--------------------------------------------------
+
+-m yum -a "name=<> state=<>"
+-m user -a "name=<> group=<> userid=<> state=<>"
+-m service -a "name=<> state=<>"
+
+-m set_fact -a "userdefined_param=<>"
+				   |__ansible_filter
+
+[Linux] ->    - Linux 
+	      ---------//yaml array
+-------
+ |->json array
+
+https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_filters.html
+
+
+
+- shell: echo "only on Red Hat 6, derivatives, and later"
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['lsb']['major_release'] | int >= 6
+
+
+ansible_facts['os_family'] == "RedHat" and ansible_facts['lsb']['major_release']|int
+								"7.5"|int => 7
+
+
+
+tasks:
+  - name: Register JSON output as a variable
+    shell: cat /some/path/to/file.json
+    register: result
+
+  - name: Set a variable
+    set_fact:
+      myvar: "{{ result.stdout | from_json }}"
+
+
+
+python					json
+--------				-----
+List = [10,10.34,"data",True]   -->   Array = [10,10.34,"data",true]
+			
+YAML
+----
+List_Array: [10,10.34,data,True,true] 
+	<or>
+List_Array:
+- 10
+- 10.34
+- data
+- True
+- true
+##################################################################################
