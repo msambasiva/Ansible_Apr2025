@@ -1,0 +1,4 @@
+---
+- hosts: node1
+  tasks:
+  - apt: name=zsh state=present

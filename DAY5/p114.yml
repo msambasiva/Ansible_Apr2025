@@ -1,0 +1,6 @@
+---
+- name: role demo
+  hosts: all
+  roles:
+  - { role: fullstack_App,when: ansible_os_family == "RedHat" }
+  - { role: devnode,when: ansible_os_family == "Debian" }

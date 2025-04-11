@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: var=ansible_local
+  - debug: var=ansible_local.product
+  - debug: var=ansible_local.product.prod.name

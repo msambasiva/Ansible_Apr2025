@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  tasks:
+  - name: get file attributes
+    stat: path=/etc/passwd
+    register: result
+
+  - name: assert that /etc/passwd is a directory
+    assert: that=result.stat.isdir

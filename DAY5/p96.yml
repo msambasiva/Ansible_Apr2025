@@ -1,0 +1,21 @@
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    debug: msg="OK1"
+  - name: task2
+    command: sleep 15 # task execution is 15secs
+    async: 1
+    poll: 0
+    register: result
+  - name: wait for the task
+    wait_for:
+      port: 22
+      host: '{{ansible_ssh_host}}'
+      search_regex: OpenSSH
+      timeout: 60
+    connection: local
+
+  - name: task3
+    debug: msg="OK2"
+  - debug: var=result

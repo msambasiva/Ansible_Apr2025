@@ -1,0 +1,4 @@
+- name: task-display-kernel-info
+  command: uname -rs
+  register: result
+- command: date

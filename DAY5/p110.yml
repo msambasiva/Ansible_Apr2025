@@ -1,0 +1,10 @@
+---
+- name: include task demo
+  hosts: node1
+  tasks:
+  - name: task1
+    debug: msg="Welcome"
+  - include: p109.yml
+  - name: task2
+    debug: var=result.stdout
+  - debug: msg="Thank you"

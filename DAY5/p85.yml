@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  #vars:
+  #  emp_csv: "{{ lookup('csvfile','file=/root/emp.csv delimiter=,') }}"
+  tasks:
+  - name: Get command result from lookup
+    debug: msg="Working kernel name is:{{lookup('pipe','uname')}}"
+  - debug: msg="{{lookup('file','/root/emp.csv')}}"
+  #- debug: var=emp_csv

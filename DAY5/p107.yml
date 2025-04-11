@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    command: uptime
+  - name: task2
+    debug: msg="OK"

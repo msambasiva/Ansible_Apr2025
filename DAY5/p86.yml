@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: 
+      msg: "{{item}}"
+    loop: "{{lookup('sequence','start=1 end=7')|list}}"
+  # - debug: 
+    #  msg: "{{ item }}"
+    # loop: "{{lookup('lines','/root/emp.csv')}}" 

@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  tasks:
+  - debug:
+     msg: "{{ item }}"
+    loop: "{{q('file',['/etc/hosts','/root/emp.csv'])}}"

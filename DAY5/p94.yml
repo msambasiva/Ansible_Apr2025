@@ -1,0 +1,15 @@
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    debug: msg="OK1"
+  - name: task2
+    command: sleep 15 # task execution is 15secs
+    async: 10
+    poll: 5
+    register: result
+  - name: task3
+    debug: msg="OK2"
+  - name: job_status
+    async_status:
+      jid: "{{result.ansible_job_id}}"

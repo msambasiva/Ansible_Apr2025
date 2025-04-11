@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  tasks:
+  - name: display home directory
+    debug: msg="Login path  is {{lookup('env','HOME')}}"
+  - debug: msg="Login shell is {{lookup('env','SHELL')}}"
+  - name: display file content
+    debug: msg="test.log file content {{lookup('file','test.log')}}"
+  - name: display file content
+    debug: msg="/etc/hosts file content {{lookup('file','/etc/hosts')}}"

@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    debug: msg="OK-1"
+  - name: task2
+    debug: msg="OK-2"
+    tags: 
+     - sales
+     - prod
+     - qa
+  - name: task3
+    debug: msg="OK-3"
+  - name: task4
+    debug: msg="OK-4"
+    tags:
+     - sales
+     - dev
+  - name: task5
+    debug: msg="OK-5"
+    tags: dev
+  - name: task6
+    debug: msg="OK-6"
+  - name: task7
+    debug: msg="OK-7"
+  - name: task8
+    debug: msg="OK-8"
+
+# ansible-playbook p105.yml -t sales,dev
+# ansible-playbook p105.yml --tags=sales,dev
+# ansible-playbook p105.yml --skip-tags=sales,dev
+# ----------------------------------------------

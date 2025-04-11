@@ -1,0 +1,5 @@
+---
+- name: role demo
+  hosts: node1
+  roles:
+  - devnode
