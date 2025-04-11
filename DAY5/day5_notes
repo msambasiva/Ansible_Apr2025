@@ -1,0 +1,530 @@
+set_fact: key: "{{input|ansible_filter}}"
+	   |
+
+
+lookup()
+--------
+ |-from env variables,file,external commands
+
+lookup(env, ..)
+       file,..)
+       pipe,..
+       csvfile..
+       query(lookup('''))
+
+ansible-doc -l -t lookup
+-----------------------------------------------------------------------------
+Regx
+ |--->search and substitute
+
+BRE
+^ $ ^pattern$ . .* [] ^[] []$  ^$
+ERE
+| () + {}
+
+input|regex_search('pattern') ->result
+ |_____________________|	
+
+^ => ^pattern 
+$ => pattern$
+^pattern$ =>pattern only style
+. =>any single char
+.* =>list of all
+[] =>character class - 1 char
+
+[abc]def => adef bdef cdef
+ ---
+  |->single chars
+[a-z]
+[A-Z]
+[a-zA-Z]
+[0-9]
+[a-zA-Z0-9]
+
+pattern1|pattern2	- any one pattern is matched
+(pattern1)(pattern2)    - both pattern should match same order
+
+
+tasks:
+- set_fact: K="user@hostname.com"
+- debug:
+    msg: "{{K|regex_search(user)}}"
+-----------------------------------------------------------------------
+^sales -> sales asfsfsdfsa //OK
+
+ sales$ -> asfasfass sales//OK
+
+^sales$  -> sales //OK      sales, //Not-OK
+
+ '^.ar$' //pattern only
+
+
+{{ 'ansible' | regex_replace('^a.*i(.*)$', 'a\\1') }}
+
+
+higher order  -> function(another_function)
+--------------------------------------------
+map(anotherFunction) <or> map(anotherFilter)
+
+{{input|regex_replace('old','new')}}
+
+map(regex_replace('old','new')) -><generator>
+					|->Address ->type cast to list
+
+{{input|map(regex_replace('old','new'))|list}} 
+   	     -----------                 -- //typecast to list		
+|
+|
+|
+Python 3.6.8 (default, Nov  8 2023, 18:52:33)
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-44.0.3)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
+>>>
+>>> def f1(a):
+...   return a+100
+...
+>>> L=[]
+>>> for var in range(1,5):
+...    r=f1(var)
+...    L.append(r)
+...
+>>> L
+[101, 102, 103, 104]
+>>>
+>>> map(f1,range(1,5))
+<map object at 0x7f153ff33eb8>
+>>> list(map(f1,range(1,5))) ------------------>(A)
+[101, 102, 103, 104]
+>>>
+>>>
+{{input|map(regex_replace('old','new'))|list}} ---<---(A) # in ansible way
+   	     -----------                 -- //typecast to list		
+############################################################################
+
+[root@krosumlabs ansible_training]# basename /L1/L2/L3/L4/p1.java
+p1.java
+
+- set_fact:
+    K: "/L1/L2/L3/L4/p1.java"
+- debug:
+    msg: "{{K|basename}}"
+----------------------------------------------------------------------------------
+
+on remote node
+shell module - execute some set of commands - redirect command results ->file1.log
+|
+shell module - execute some set of commands - redirect command results ->file2.log
+|
+register both module execution to register variable
+|
+register_variable ->stdout_lines ->typecast to list ->apply set operation 
+				 # ex: filter common data from file1.log and file2.log
+				 # 
+- display common data to monitor use debug module
+----------------------------------------------------------------------------------
+---
+- hosts: node1
+  tasks:
+  - shell: (ps;sleep 5;date) >/tmp/p1.log
+  - shell: ps >/tmp/p2.log
+  - command: cat /tmp/p1.log
+    register: result1
+  - command: cat /tmp/p2.log
+    register: result2
+  - set_fact: r1="{{result1.stdout_lines|list}}"
+  - set_fact: r2="{{result2.stdout_lines|list}}"
+  - set_fact: comm="{{r1|intersect(r2)}}"
+  - debug: var=comm
+--------------------------------------------------------------------------------------
+
+- name: task1
+  command: echo "OK"
+- name: task2
+  command: sleep 600    <==
+- name: task3 
+  debug: msg="OK1"
+- name: task4
+  debug: msg="OK2"
+----------------------------
+How to run ansible playbook in parallel ?
+async and poll - attributes (or) keywords - not a module 
+
+async: <Time> in seconds 
+poll: <number>
+
+
+- name: task1
+  command: echo "OK"
+- name: task2
+  command: sleep 600   
+  async: 10      ---- // task will be failed 
+- name: task3 
+  debug: msg="OK1"
+- name: task4
+  debug: msg="OK2"
+
+poll - check every number of seconds until the job is done (or) timeout is reached
+----
+poll: 0 <= default poll - don't wait move on 
+poll: >0 <---check every number of seconds until the job is done (or) timeout is reached
+
+- name: task1
+  module:
+     param: .... # execution
+  async: 10 <== it will give up time - 10seconds to run the module(task)
+  poll: 5   <== ansible will wait(poll) every 5 secs
+
+
+async + 0 poll = parallelized task
+
+How to run ansible playbook in parallel ? 
+async: <seconds>
+poll: 0
+
+poll: 0 - ansible not wait - move on the next task
+######################################################################################
+Reference
+==========
+https://toptechtips.github.io/2023-07-02-ansible-async-parallel/
+
+######################################################################################
+facts
+======
+gather_facts: true <== default   Vs gather_facts: false
+	|
+	collect resource details (CPU,Memory,IO,disk etc.,)
+		================
+		 |->using ansible variable - will get the details
+
+ansible <node> -m setup
+ansible <node> -m setup -a "filter=<searchpattern>" <== To get subset of facts
+|
+Local facts
+-------------
+ |-> to define local facts - we must be root user
+ |-> we can define own set of facts(information)about product/repo/service etc.,
+		   ----------------
+			|-> .ini format
+			|-> json format
+ 
+ |-> /etc/ansible/facts.d/filename.fact
+    ------------------------------------//this is from control system
+  copy this filename.fact file to remotenode
+					|->we can access the content ...
+					|-> ansible_local 
+
+|
+set_fact - to define new variable
+|
+set_fact <== module
+
+1st commandline args -> ansibly-playbook -e "var=value"
+2nd playbook
+3rd host ->groups 
+4th facts
+5th role/defaults/mail.yml - role 
+########################################################################################
+
+debug module - ansible print statement 
+  |
+debug:
+    var: <variable>
+    msg: arbiary string with {{variable}}
+
+assert module - this is module will fail with an error if condition is not met
+------
+assert:
+  that: <condition>
+
+
+
+module: 
+ params
+
+assert:
+  that:  ....
+
+assert:
+ that: ansible_<disk> is defined
+		      ---
+
+is 
+is not
+--------//object - value based - object is exists ->bool
+
+assert:
+  that: ansible_enp0s3 is defined # network ethernet is exists 
+
+#######################################################################################
+
+tags
+----
+|->add 1 or more tags(user defined) to task
+ 
+|->  -t <tageName> (or) --tags=<tagName>
+    --skip-tag <tagName> <== tell to ansible to skip task
+
+tags:
+ <tagName>
+-----
+start-at-task:-
+----------------
+start-at-task  taskname flag - tells ansible to start running the playbook at
+the specified task, instead of at the beginning of the task.
+
+ansible-playbook p106.yml --start-at-task="task5"
+------------------------------------------------------------------------------------
+step 
+----
+--step flag
+ |
+ y - yes 
+ n - no
+ c - continue - continue running the rest of the playbook without prompting
+
+ansible-playbook --step <filename>.yml
+
+ansible-playbook p107.yml --step
+---------------------------------------------------------------------------
+Check mode
+-----------
+-C <or> --check flags - will run ansible check mode (dry-run) 
+---------------------
+ansible-playbook -C p1.yml - tells whether each task in playbook would modify the host
+(preview <or> plan) - not make any actual changes to the server
+
+ansible-playbook -C p1.yml (or) ansible-playbook --check p1.yml
+--------------------------------------------------------------------------------------
+To get list of tasks from playbook  --list-tasks
+----------------------------------
+ |->ansible-playbook --list-tasks p1.yml
+			
+
+To get list of nodes from playbook  --list-hosts
+-----------------------------------
+ |->ansible-playbook --list-hosts p1.yml
+
+-------------------------------------------------------------------------------
+
+file: pa.yml  ----------------------->---------------(A)---------
+--------------
+- command: date	
+- command: ps
+- command: uptime
+---------------------//loadable file
+
+----------------------------------------------
+file:p1.yml (target section + task section
+---------------------------------------------- 
+
+include_task: <pa.yml> (or) include: <pa.yml>
+					
+
+file: p1.yml
+---
+- hosts: node1
+  tasks:
+  - name: task1
+    debug: msg="welcome"
+  - include: pa.yml   --------------<-----------(A) -------------
+  - name: task3
+    debug: msg="Thank you"
+--------------------------------
+
+file: t1.yml
+-----------------
+myvar: 120
+myarr:
+- d1
+- d2
+- d3
+-------------------//variable
+
+file:p1.yml
+
+---
+- hosts: localhost
+  tasks:
+  - name: task1
+    include_vars: t1.yml
+    debug: var=myarr
+
+file: p1.yml 		p2.yml 			p3.yml 
+     target+task	target+task+handler    target+vars+task
+
+file: myplay.yml
+      
+vi myplay.yml
+- import_playbook: p1.yml
+- import_playbook: p2.yml
+- import_playbook: p3.yml
+
+ansible-playbook myplay.yml 
+
+####################################################################################
+roles - directory
+-----
+ |->reusability 
+ |->multiple include (include vars,tasks..) into single file
+
+
+file: pa.yml
+---------------
+---
+- name: this is target section-play
+  hosts: <remoteNode>
+  vars:
+    va: value
+    vb: value
+  tasks:
+  - name: task1
+    module: params
+  - name: task2
+    module: params
+    notify: notifyName
+  - name: task3
+    module: params
+  - name: task4
+    template: src=file1 dest=file.conf
+  handlers:
+  - name: notifyName
+    module: params
+---------------------------------------------
+	 		
+ role  - movie actor
+	      <person1>
+		|-------role1 - police - characterstic 
+		|-------role2 - doctor - characterstic 
+ |
+<m/c>
+  |_____dev: 
+  |_____test:
+
+step 1: mkdir roles <== pre-defined
+|
+step 2: change to roles directory (cd roles)
+|
+step 3: create project directory (user defined directory name) 
+		(ex: mkdir dev production  DBA)
+|
+step 4: each project directory inside
+	|
+	|-> mkdir tasks vars handlers templates <== pre-defined directories 
+		
+	tasks/
+	     |->filename.yml
+		 - we can keep task details only
+	vars/
+	     |->filename.yml
+		 - we can keep variable initializations
+	handlers/
+		|->filename.yml
+		    - we can keep handler section code only
+        templates/
+		 |->keep jija2 template file
+|
+step 5: Go to roles/ parent location
+|
+step 6: create a playbook file (or) masterfile
+		|
+	vi p1.yml
+	---
+        - name: <roledemo>
+	  hosts: <hostname>
+          roles: <=====================
+          - <roleName> (or) projectname
+
+####################################################################################
+
+
+
+tasks/
+    |__p1.yml
+	 |_____  - name: task1
+		   command: uptime
+		   register: result
+    |__p2.yml
+	 |____   - name: task2
+		   debug: var=result.stdout
+    |__main.yml
+	|
+	include_task: p1.yml
+	include_task: p2.yml
+
+vars/
+   |__ pa.yml
+       pk1: httpd
+   |__ pb.yml
+       pk2: apache2
+   |__ main.yml
+       include_vars: pa.yml
+       include_vars: pb.yml
+----------------------------------------------------------------------------------
+Galaxy - ansible repository
+------
+
+roleName/
+	 vars/
+	     |<-- variables - Highest priority than defaults
+	 tasks/
+
+	 handlers/
+	
+	 templates/
+
+	 defaults/
+		|->main.yml <= variable - lowest priority
+
+	 files/ 
+	      |-> static files - to be copied (copy: src=file1 - supporting files)
+	 
+	 meta/
+	    |-->documentations about role and author details
+
+	 tests/
+	    |-> inventory 
+	    |-> test.yml
+
+------------------------------------------------------------------------------
+ansible-vault
+------------- 
+|->command line tool
+
+ansible-vault create <filename>
+ansible-vault view <filename>
+	      
+ansible-vault encrypt <filename>  -> ansible-vault edit <filename>
+ansible-vault decrypt <filename>
+
+#####################################################################################
+ IaC 
+ ----
+   |-> build infrastructure - terraform  ->[build the infra] - ready 
+								 |
+   |-> configuration management - ansible ------------------------
+						manage the infra
+						install;update;remove;delete ....
+						 NOT destory the infra
+						 NOT build the new infra
+
+terraform 
+ |-> hashcorp - implement from go 
+ |
+ |-> HCL code style - declarative style code
+			block style
+resource 
+ - oci compute 
+ - oci storage
+ - ec2 instance
+ - repository
+variable
+input
+output
+local
+datablock
+
+terraform --->[create a new infra]-->[manage the application]
+==================================// ------>
+	<------------------------ ansible (CM)
+###################################################################################
